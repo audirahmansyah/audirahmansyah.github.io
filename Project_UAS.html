@@ -1,0 +1,93 @@
+<html>
+<head>
+<title> LeafletJS 04 </title>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"/>
+	 <!-- Make sure you put this AFTER Leaflet's CSS -->
+ <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"></script>
+ 
+ <!-- Control Location Source/menentukan loksi user-->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"> 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.70.0/src/L.Control.Locate.min.js" type="text/html">
+<script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.70.0/dist/L.Control.Locate.min.js" charset="utf-8"></script>
+
+ <!-- Load Omnivore plugin to convert CSV to GeoJSON format -->
+ <script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-omnivore/v0.3.1/leaflet-omnivore.min.js'></script>
+ <!-- Rotate marker -->
+ <script src="src/leaflet.rotatedMarker.js"></script>
+ 
+</head>
+<style>
+#map { height: 100%;
+		width: 100%;
+ }
+</style>
+<body>
+ <div id="map"></div>
+ <script>
+	///ini merupakan pusat peta kita berserta attributnya: ketinggian zoom dengan maks dan minimalnya///
+	var map = L.map('map',{
+    center: [-2.9882,104.7611], //pusat koordinat peta
+    zoom:7, //zoom default
+    minZoom: 7, // minimal zoom
+    maxZoom: 18, //maximal zoom
+    //maxBounds: bounds
+    });	
+	
+	var Att 	= '&copy; <a href="#">LeafletJs Ch.03</a> contributors' +'&copy;<a href="#">BabeCuaca</a>'; ////variabel atribution 
+	var Osm		= 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'; ///inilah ada basemap osm
+	var Topo	= 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png'; ///inilah ada basemap topografi
+	var Tambahan	= 'https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png'; ///inilah ada basemap tambahan
+	
+	var lyrOsm	= L.tileLayer(Osm,{attribution: Att});			//ini merupakan gabungan dari variabel link basemap dan attribution
+	var lyrTopo	= L.tileLayer(Topo,{attribution: Att}); 		//sedang ini untuk layer topografi yang akan kita jadikan basemap kedua
+	var lyrTambahan	= L.tileLayer(Tambahan,{attribution: Att}); 		//sedang ini untuk layer topografi yang akan kita jadikan basemap kedua
+	
+	//kita akan membuat dua overlay sebagai berikit titik dan cicle yang akan muncul ketika diklik pada windows control layer////
+	var marker = L.marker([-2.9549597,104.6228777,11]);
+	var circle = L.circle([-2.9549597,104.6228777,11], {
+    color: 'red',
+    fillColor: '#f03',
+    fillOpacity: 0.5,
+    radius: 5000 //ini semua attribut dari circle
+	});
+	var marker2 = L.marker([-2.9949597,104.6228777,11]);///merubah sedikit koordinat
+	
+	//CSV Layer//
+	
+	var runLayer = omnivore.csv('src/Projek_Uas_SIG.csv')
+    .on('ready', function(layer) {
+        
+        this.eachLayer(function(marker) {
+            
+            // Bind a popup to each icon based on the same properties
+            marker.bindPopup('<b>Titik Lokasi</b><br>Nama Masjid/Musholla: <b>'+marker.toGeoJSON().properties.nama + '</b><br>Alamat: <b>'+
+                marker.toGeoJSON().properties.alamat+ '</b>');
+        });
+    });
+	
+	
+	//button/windows control layer//
+	var baseMaps= {
+    "OpenStreetMap": lyrOsm,
+	"Topografi": lyrTopo,
+	"Tambahan": lyrTambahan //tanpa koma
+	};
+	var overlayMaps = {
+	"Ini Marker": marker, 
+	"Ini Circle": circle,
+	"Ini Marker 2": marker2,
+	"Ini CSV Layer": runLayer	//tanpa koma //kalau text sama di list yg tampil cuma satu//kita akan memanggil overlay tambahan di sini
+	
+	};//ini merupakan list basemap dan overlay map yg akan ditampilkan pada windows control layer (Check Teext
+	
+	var ctrlLyr	= L.control.layers(baseMaps, overlayMaps,{collapsed:false}); //tombol pilihan layer pojok kanan atas
+	
+	var ctrlLoc	= L.control.locate({position: 'topleft',strings: {title: "Ini Posisi Anda!"}}); 	//posisi tombol lokasi user (Control Location) pada pojok kiri atas di bawah tombol zoom in/out
+	
+	lyrOsm.addTo(map); //ini default map yang tampil dan apabila tidak dipanggil map akan blank, jika dipanggil checklist pada list akan terchecked
+	ctrlLyr.addTo(map); //memanggil windows control layer dan menampilkan ke map
+	ctrlLoc.addTo(map); ///ini menampilkan tombol lokasi user/control location posisinya dibawah tombol zoom
+
+</script> 
+</body>
+</html>
